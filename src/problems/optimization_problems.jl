@@ -103,6 +103,7 @@ struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, K} <:
     ucons::UC
     sense::S
     kwargs::K
+    is_multiobjective::MO
     @add_kwonly function OptimizationProblem{iip}(f::OptimizationFunction{iip}, u0,
             p = NullParameters();
             lb = nothing, ub = nothing, int = nothing,
@@ -112,6 +113,7 @@ struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, K} <:
             error("If any of `lb` or `ub` is provided, both must be provided.")
         end
         warn_paramtype(p)
+        is_multiobjective = typeof(f.f) <: Vector
         new{iip, typeof(f), typeof(u0), typeof(p),
             typeof(lb), typeof(ub), typeof(int), typeof(lcons), typeof(ucons),
             typeof(sense), typeof(kwargs)}(f, u0, p, lb, ub, int, lcons, ucons, sense,
@@ -132,7 +134,8 @@ function OptimizationFunction(
     if isinplace(f)
         throw(ArgumentError("Converting NonlinearFunction to OptimizationFunction is not supported with in-place functions yet."))
     end
-    OptimizationFunction((u, p) -> sum(abs2, f(u, p)), adtype; kwargs...)
+    is_multiobjective = typeof(f) <: Vector
+    OptimizationFunction((u, p) -> sum(abs2, f(u, p)), adtype; kwargs..., is_multiobjective = is_multiobjective)
 end
 
 function OptimizationProblem(
