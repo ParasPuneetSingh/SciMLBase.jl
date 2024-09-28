@@ -1933,9 +1933,9 @@ $(TYPEDEF)
 
 A representation of a multi-objective optimization problem, where multiple objective functions `f1, f2, ..., fn` are to be minimized:
 
-\[
-\min_{u} F(u, p) = [f1(u, p), f2(u, p), ..., fn(u, p)]
-\]
+'''math
+\\min_{u} F(u, p) = [f1(u, p), f2(u, p), ..., fn(u, p)]
+'''
 
 `F` represents a vector of objective functions, where `u` are the optimization variables and `p` are fixed parameters or data. This struct defines all related functions such as Jacobians, Hessians, constraint functions, and their derivatives needed to solve multi-objective optimization problems.
 
