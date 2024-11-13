@@ -2003,6 +2003,8 @@ MultiObjectiveOptimizationFunction{iip}(F, adtype::AbstractADType = NoAD();
   pattern of the `cons_jac_prototype`.
 - `cons_hess_colorvec`: an array of color vector according to the SparseDiffTools.jl definition for
   the sparsity pattern of the `cons_hess_prototype`.
+-`num_dimensions`: the number of dimensions of the constraint box for OptimizationBBO.jl.
+-`fitness_scheme`: the fitness scheme for OptimizationBBO.jl.
 
 When [Symbolic Problem Building with ModelingToolkit](https://docs.sciml.ai/Optimization/stable/tutorials/symbolic/) interface is used the following arguments are also relevant:
 
@@ -2025,7 +2027,7 @@ The fields of the MultiObjectiveOptimizationFunction type directly match the nam
 
 struct MultiObjectiveOptimizationFunction{
     iip, AD, F, J, H, HV, C, CJ, CJV, CVJ, CH, HP, CJP, CHP, O,
-    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV} <:
+    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV, ND, FS<:FitnessScheme} <:
        AbstractOptimizationFunction{iip}
     f::F
     adtype::AD
@@ -2050,6 +2052,8 @@ struct MultiObjectiveOptimizationFunction{
     cons_jac_colorvec::CJCV
     cons_hess_colorvec::CHCV
     lag_hess_colorvec::LHCV
+    num_dimensions::ND
+    fitness_scheme::FS
 end
 
 """
@@ -3976,7 +3980,9 @@ function MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoA
                             nothing,
         cons_hess_colorvec = __has_colorvec(f) ? f.colorvec :
                              nothing,
-        lag_hess_colorvec = nothing) where {iip}
+        lag_hess_colorvec = nothing,
+        num_dimensions = 0, 
+        fitness_scheme = TupleFitnessScheme) where {iip}
     isinplace(f, 2; has_two_dispatches = false, isoptimization = true)
     sys = sys_or_symbolcache(sys, syms, paramsyms)
     MultiObjectiveOptimizationFunction{
@@ -3990,14 +3996,14 @@ function MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoA
         typeof(expr), typeof(cons_expr), typeof(sys), typeof(lag_h),
         typeof(lag_hess_prototype), typeof(hess_colorvec),
         typeof(cons_jac_colorvec), typeof(cons_hess_colorvec),
-        typeof(lag_hess_colorvec)
+        typeof(lag_hess_colorvec), typeof(num_dimensions), typeof(fitness_scheme)
     }(f, adtype, jac, hess,
         hv, cons, cons_j, cons_jvp,
         cons_vjp, cons_h,
         hess_prototype, cons_jac_prototype,
         cons_hess_prototype, observed, expr, cons_expr, sys,
         lag_h, lag_hess_prototype, hess_colorvec, cons_jac_colorvec,
-        cons_hess_colorvec, lag_hess_colorvec)
+        cons_hess_colorvec, lag_hess_colorvec, num_dimensions, fitness_scheme)
 end
 
 function BVPFunction{iip, specialize, twopoint}(f, bc;
