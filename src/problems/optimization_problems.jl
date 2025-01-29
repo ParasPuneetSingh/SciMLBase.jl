@@ -31,6 +31,8 @@ OptimizationProblem{iip}(f, u0, p = SciMLBase.NullParameters(),;
                         lcons = nothing,
                         ucons = nothing,
                         sense = nothing,
+                        num_dimensions = nothing,
+                        fitness_scheme = nothing,
                         kwargs...)
 ```
 
@@ -77,7 +79,8 @@ Any extra keyword arguments are captured to be sent to the optimizers.
     Defaults to `nothing`, implying no upper bounds for the constraints (i.e. the constraint bound is `Inf`)
 * `sense`: the objective sense, can take `MaxSense` or `MinSense` from Optimization.jl.
 * `kwargs`: the keyword arguments passed on to the solvers.
-
+* `num_dimensions`: For BBO optimization.
+* `fitness_scheme`: For BBO optimization.
 ## Inequality and Equality Constraints
 
 Both inequality and equality constraints are defined by the `f.cons` function in the [`OptimizationFunction`](https://docs.sciml.ai/Optimization/stable/API/optimization_function/#optfunction)
@@ -95,7 +98,7 @@ Note that these vectors must be sized to match the number of constraints, with o
 As described above the second argument of the objective definition can take a full batch or a [`DataLoader`](https://juliaml.github.io/MLUtils.jl/stable/api/#MLUtils.DataLoader) object for mini-batching which is useful for stochastic optimization solvers. Thus the data either as an Array or a `DataLoader` object should be passed as the third argument of the `OptimizationProblem` constructor.
 For an example of how to use this data handling, see the `Sophia` example in the [Optimization.jl documentation](https://docs.sciml.ai/Optimization/dev/optimization_packages/optimization) or the [mini-batching tutorial](https://docs.sciml.ai/Optimization/dev/tutorials/minibatch/).
 """
-struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, K} <:
+struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, ND, FS, K} <:
        AbstractOptimizationProblem{iip}
     f::F
     u0::uType
@@ -106,6 +109,8 @@ struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, K} <:
     lcons::LC
     ucons::UC
     sense::S
+    num_dimensions::ND
+    fitness_scheme::FS
     kwargs::K
     @add_kwonly function OptimizationProblem{iip}(
             f::Union{OptimizationFunction{iip}, MultiObjectiveOptimizationFunction{iip}},
@@ -113,14 +118,14 @@ struct OptimizationProblem{iip, F, uType, P, LB, UB, I, LC, UC, S, K} <:
             p = NullParameters();
             lb = nothing, ub = nothing, int = nothing,
             lcons = nothing, ucons = nothing,
-            sense = nothing, kwargs...) where {iip}
+            sense = nothing, num_dimensions = nothing, fitness_scheme = nothing, kwargs...) where {iip}
         if xor(lb === nothing, ub === nothing)
             error("If any of `lb` or `ub` is provided, both must be provided.")
         end
         warn_paramtype(p)
         new{iip, typeof(f), typeof(u0), typeof(p),
             typeof(lb), typeof(ub), typeof(int), typeof(lcons), typeof(ucons),
-            typeof(sense), typeof(kwargs)}(f, u0, p, lb, ub, int, lcons, ucons, sense,
+            typeof(sense), typeof(num_dimensions), typeof(fitness_scheme), typeof(kwargs)}(f, u0, p, lb, ub, int, lcons, ucons, sense, num_dimensions, fitness_scheme,
             kwargs)
     end
 end
