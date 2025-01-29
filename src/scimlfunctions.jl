@@ -2027,7 +2027,7 @@ The fields of the MultiObjectiveOptimizationFunction type directly match the nam
 
 struct MultiObjectiveOptimizationFunction{
     iip, AD, F, J, H, HV, C, CJ, CJV, CVJ, CH, HP, CJP, CHP, O,
-    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV, ND, FS<:FitnessScheme} <:
+    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV, ND, FS} <:
        AbstractOptimizationFunction{iip}
     f::F
     adtype::AD
@@ -3982,7 +3982,7 @@ function MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoA
                              nothing,
         lag_hess_colorvec = nothing,
         num_dimensions = 0, 
-        fitness_scheme = TupleFitnessScheme) where {iip}
+        fitness_scheme = nothing) where {iip}
     isinplace(f, 2; has_two_dispatches = false, isoptimization = true)
     sys = sys_or_symbolcache(sys, syms, paramsyms)
     MultiObjectiveOptimizationFunction{
