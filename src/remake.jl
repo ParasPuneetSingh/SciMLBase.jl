@@ -379,6 +379,8 @@ function remake(prob::OptimizationProblem;
         lcons = missing,
         ucons = missing,
         sense = missing,
+        num_dimensions = missing,
+        fitness_scheme = missing,
         kwargs = missing,
         interpret_symbolicmap = true,
         use_defaults = false,
@@ -406,16 +408,24 @@ function remake(prob::OptimizationProblem;
         sense = prob.sense
     end
 
+    if num_dimensions === missing
+        num_dimensions = prob.num_dimensions
+    end
+
+    if fitness_scheme === missing
+        fitness_scheme = prob.fitness_scheme
+    end
+
     if kwargs === missing
         OptimizationProblem{isinplace(prob)}(f = f, u0 = u0, p = p, lb = lb,
             ub = ub, int = int,
             lcons = lcons, ucons = ucons,
-            sense = sense; prob.kwargs..., _kwargs...)
+            sense = sense, num_dimensions = num_dimensions, fitness_scheme = fitness_scheme; prob.kwargs..., _kwargs...)
     else
         OptimizationProblem{isinplace(prob)}(f = f, u0 = u0, p = p, lb = lb,
             ub = ub, int = int,
             lcons = lcons, ucons = ucons,
-            sense = sense; kwargs...)
+            sense = sense, num_dimensions = num_dimensions, fitness_scheme = fitness_scheme; kwargs...)
     end
 end
 
