@@ -2064,9 +2064,84 @@ end
 $(TYPEDEF)
 """
 
+
+"""
+$(TYPEDEF)
+
+A representation of a multi-objective optimization function `f`, defined by:
+
+```math
+min_{u} f(u,p)
+```
+
+where `f(u,p)` returns a vector of objective values (multi-objective), or in-place as `f!(cost, u, p)`.
+The number of objectives is determined by the length of `cost_prototype`.
+
+## Constructor
+
+```julia
+MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoAD();
+    jac = nothing, hess = nothing, hv = nothing,
+    cons = nothing, cons_j = nothing, cons_jvp = nothing,
+    cons_vjp = nothing, cons_h = nothing,
+    hess_prototype = nothing,
+    cons_jac_prototype = nothing,
+    cons_hess_prototype = nothing,
+    observed = __has_observed(f) ? f.observed : DEFAULT_OBSERVED_NO_TIME,
+    lag_h = nothing,
+    lag_hess_prototype = nothing,
+    hess_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
+    cons_jac_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
+    cons_hess_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
+    lag_hess_colorvec = nothing,
+    sys = __has_sys(f) ? f.sys : nothing,
+    cost_prototype,
+    coalesce = (cost, u, p) -> norm(cost, 2),
+    kwargs...)
+```
+
+## Positional Arguments
+
+  - `f(u,p)`: the multi-objective function, returning a vector of objectives, or in-place as `f!(cost, u, p)`.
+  - `adtype`: see the Defining Optimization Functions via AD section below.
+  - `cost_prototype`: a vector of the correct length and type for the objectives (required for in-place form).
+
+## Keyword Arguments
+
+  - `jac(J, u, p)`: the Jacobian of the objectives (optional).
+  - `hess(H, u, p)`: the Hessian of the objectives (optional).
+  - `hv(Hv, u, v, p)`: the Hessian-vector product (optional).
+  - `cons(res, u, p)`: constraints function (optional).
+  - `cons_j(J, u, p)`: Jacobian of the constraints (optional).
+  - `cons_jvp(Jv, u, v, p)`: Jacobian-vector product of the constraints (optional).
+  - `cons_vjp(Jv, u, v, p)`: Jacobian-vector product of the constraints (optional).
+  - `cons_h(H, u, p)`: Hessian of the constraints (optional).
+  - `hess_prototype`, `cons_jac_prototype`, `cons_hess_prototype`: prototypes for Hessian/Jacobian types (optional).
+  - `lag_h(res, u, sigma, mu, p)`: Hessian of the Lagrangian (optional).
+  - `coalesce(cost, u, p)`: function to reduce the vector of objectives to a scalar (defaults to `norm(cost, 2)`).
+
+## In-Place vs Out-Of-Place
+
+* Out-of-place: `cost = f(u, p)` returns a vector of objectives.
+* In-place: `f!(cost, u, p)` writes the objectives into `cost` (must match `cost_prototype`).
+* `isinplace` is determined by the number of arguments (3 for in-place, 2 for out-of-place), matching `NonlinearFunction`.
+
+## Derivative Argument Structures
+
+* Jacobian: `jac(J, u, p)` or `J = jac(u, p)`
+* Hessian: `hess(H, u, p)` or `H = hess(u, p)`
+* Hessian-vector: `hv(Hv, u, v, p)` or `Hv = hv(u, v, p)`
+
+## Scalarization
+
+If a `coalesce` function is provided, the multi-objective problem can be solved as a scalar problem by applying `coalesce(f(u, p), u, p)`.
+
+## Fields
+The fields of the MultiObjectiveOptimizationFunction type directly match the names of the inputs, with the addition of `cost_prototype` and `coalesce`.
+"""
 struct MultiObjectiveOptimizationFunction{
     iip, AD, F, J, H, HV, C, CJ, CJV, CVJ, CH, HP, CJP, CHP, O,
-    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV, ID} <:
+    EX, CEX, SYS, LH, LHP, HCV, CJCV, CHCV, LHCV, ID, CP, COAL} <:
        AbstractOptimizationFunction{iip}
     f::F
     adtype::AD
@@ -2092,6 +2167,8 @@ struct MultiObjectiveOptimizationFunction{
     cons_hess_colorvec::CHCV
     lag_hess_colorvec::LHCV
     initialization_data::ID
+    cost_prototype::CP
+    coalesce::COAL
 end
 
 """
@@ -4301,7 +4378,9 @@ function MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoA
                              nothing,
         lag_hess_colorvec = nothing,
         initialization_data = __has_initialization_data(f) ? f.initialization_data :
-                              nothing) where {iip}
+                              nothing,
+        cost_prototype,
+        coalesce = (cost, u, p) -> norm(cost, 2)) where {iip}
     isinplace(f, 2; has_two_dispatches = false, isoptimization = true)
     sys = sys_or_symbolcache(sys, syms, paramsyms)
     MultiObjectiveOptimizationFunction{
