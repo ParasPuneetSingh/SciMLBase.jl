@@ -4361,48 +4361,40 @@ function MultiObjectiveOptimizationFunction{iip}(f, adtype::AbstractADType = NoA
         cons = nothing, cons_j = nothing, cons_jvp = nothing,
         cons_vjp = nothing, cons_h = nothing,
         hess_prototype = nothing,
-        cons_jac_prototype = __has_jac_prototype(f) ?
-                             f.jac_prototype : nothing,
+        cons_jac_prototype = __has_jac_prototype(f) ? f.jac_prototype : nothing,
         cons_hess_prototype = nothing,
         syms = nothing,
         paramsyms = nothing,
-        observed = __has_observed(f) ? f.observed :
-                   DEFAULT_OBSERVED_NO_TIME,
+        observed = __has_observed(f) ? f.observed : DEFAULT_OBSERVED_NO_TIME,
         expr = nothing, cons_expr = nothing,
         sys = __has_sys(f) ? f.sys : nothing,
         lag_h = nothing, lag_hess_prototype = nothing,
         hess_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
-        cons_jac_colorvec = __has_colorvec(f) ? f.colorvec :
-                            nothing,
-        cons_hess_colorvec = __has_colorvec(f) ? f.colorvec :
-                             nothing,
+        cons_jac_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
+        cons_hess_colorvec = __has_colorvec(f) ? f.colorvec : nothing,
         lag_hess_colorvec = nothing,
-        initialization_data = __has_initialization_data(f) ? f.initialization_data :
-                              nothing,
+        initialization_data = __has_initialization_data(f) ? f.initialization_data : nothing,
         cost_prototype,
         coalesce = (cost, u, p) -> norm(cost, 2)) where {iip}
+
     isinplace(f, 2; has_two_dispatches = false, isoptimization = true)
     sys = sys_or_symbolcache(sys, syms, paramsyms)
-    MultiObjectiveOptimizationFunction{
-        iip, typeof(adtype), typeof(f), typeof(jac), typeof(hess),
-        typeof(hv),
-        typeof(cons), typeof(cons_j), typeof(cons_jvp),
-        typeof(cons_vjp), typeof(cons_h),
-        typeof(hess_prototype),
-        typeof(cons_jac_prototype), typeof(cons_hess_prototype),
-        typeof(observed),
-        typeof(expr), typeof(cons_expr), typeof(sys), typeof(lag_h),
-        typeof(lag_hess_prototype), typeof(hess_colorvec),
-        typeof(cons_jac_colorvec), typeof(cons_hess_colorvec),
-        typeof(lag_hess_colorvec), typeof(initialization_data)
-    }(f, adtype, jac, hess,
-        hv, cons, cons_j, cons_jvp,
-        cons_vjp, cons_h,
-        hess_prototype, cons_jac_prototype,
-        cons_hess_prototype, observed, expr, cons_expr, sys,
-        lag_h, lag_hess_prototype, hess_colorvec, cons_jac_colorvec,
-        cons_hess_colorvec, lag_hess_colorvec, initialization_data)
+
+    return MultiObjectiveOptimizationFunction{
+        iip, typeof(adtype), typeof(f), typeof(jac), typeof(hess), typeof(hv),
+        typeof(cons), typeof(cons_j), typeof(cons_jvp), typeof(cons_vjp), typeof(cons_h),
+        typeof(hess_prototype), typeof(cons_jac_prototype), typeof(cons_hess_prototype),
+        typeof(observed), typeof(expr), typeof(cons_expr), typeof(sys), typeof(lag_h),
+        typeof(lag_hess_prototype), typeof(hess_colorvec), typeof(cons_jac_colorvec),
+        typeof(cons_hess_colorvec), typeof(lag_hess_colorvec), typeof(initialization_data),
+        typeof(cost_prototype), typeof(coalesce)
+    }(f, adtype, jac, hess, hv, cons, cons_j, cons_jvp, cons_vjp, cons_h,
+      hess_prototype, cons_jac_prototype, cons_hess_prototype, observed,
+      expr, cons_expr, sys, lag_h, lag_hess_prototype, hess_colorvec,
+      cons_jac_colorvec, cons_hess_colorvec, lag_hess_colorvec,
+      initialization_data, cost_prototype, coalesce)
 end
+
 
 function BVPFunction{iip, specialize, twopoint}(f, bc;
         mass_matrix = __has_mass_matrix(f) ? f.mass_matrix : I,
